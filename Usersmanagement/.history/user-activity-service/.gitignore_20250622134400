@@ -1,0 +1,40 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build output
+*.test
+*.out
+
+# Output of the go coverage tool
+*.coverprofile
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories (vendor/)
+vendor/
+
+# Go modules
+go.sum
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+
+# Cassandra data and config (if any local files)
+cassandra/data/
+cassandra/logs/
+cassandra/conf/
+
+# OS generated files
+.DS_Store
+Thumbs.db
