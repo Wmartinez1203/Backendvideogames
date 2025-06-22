@@ -19,9 +19,6 @@ target/
 *.iml
 *.ipr
 
-# Ignore sensitive Spring config
-application.properties
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
