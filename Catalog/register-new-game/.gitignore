@@ -1,0 +1,82 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+*.log
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDEs
+.idea/
+*.iws
+*.ipr
+*.iml
+*.swp
+*.swo
+*.bak
+*.tmp
+*.vscode/
+*.DS_Store
+
+# OS
+Thumbs.db
+ehthumbs.db
+.DS_Store
+Icon?
+._*
+
+# Environment files
+.env
+.env.*
+*.env
+
+# MongoDB
+*.mongodb
+*.mongo
+*.bson
+dump/
+data/
+*.lock
+
+# Sensitive files
+*.key
+*.pem
+*.crt
+*.jks
+*.p12
+*.pfx
+*.der
+*.keystore
+*.truststore
+secret.*
+config/secret.*
+config/application-secret.*
+application-secret.properties
+application-secret.yml
+
+# Misc
+logs/
+*.log
+*.pid
+*.seed
+*.orig
+*.rej
+
+# Node (if present)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
