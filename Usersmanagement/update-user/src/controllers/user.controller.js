@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 const User = require("../models/user.model");
 
 const modificarUsuario = async (req, res) => {
@@ -11,9 +12,13 @@ const modificarUsuario = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    usuario.nombre = nombre ?? usuario.nombre;
-    usuario.correo = correo ?? usuario.correo;
-    usuario.contraseña = contraseña ?? usuario.contraseña;
+    // Actualizar campos si se envían
+    if (nombre) usuario.nombre = nombre;
+    if (correo) usuario.correo = correo;
+    if (contraseña) {
+      const contraseñaHasheada = await bcrypt.hash(contraseña, 10);
+      usuario.contraseña = contraseñaHasheada;
+    }
 
     await usuario.save();
 
