@@ -74,10 +74,13 @@ jobs:
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
             echo "==> Stopping old container (if exists)"
-            if sudo docker ps -aq -f name=${{ env.IMAGE_NAME }}; then
-              sudo docker stop ${{ env.IMAGE_NAME }}
-              sudo docker rm ${{ env.IMAGE_NAME }}
+            if sudo docker ps -aq -f name=usersmanagement-create-user; then
+              sudo docker stop usersmanagement-create-user || true
+              sudo docker rm usersmanagement-create-user || true
+            else
+              echo "No previous container to stop or remove"
             fi
+
 
             echo "==> Running new container"
             sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.APP_PORT }}:8080 \
