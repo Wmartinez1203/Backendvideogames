@@ -1,0 +1,20 @@
+# Usamos imagen oficial de Python 3.10 slim
+FROM python:3.10-slim
+
+# Establecemos directorio de trabajo
+WORKDIR /app
+
+# Copiamos requirements.txt primero para aprovechar cache
+COPY requirements.txt .
+
+# Instalamos dependencias
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiamos el código fuente
+COPY . .
+
+# Exponemos el puerto donde corre la app
+EXPOSE 3014
+
+# Comando para ejecutar la app con uvicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3014"]
