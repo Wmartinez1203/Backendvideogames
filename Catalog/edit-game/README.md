@@ -1,16 +1,47 @@
-s# Edit Game Microservice
+# Edit Game Microservice
 
-This is an independent REST microservice part of the "Digital Video Game Store" project, under the Catalog domain.  
-It allows editing an existing game record stored in MongoDB.
+This microservice is part of the Video Game Catalog system. It is responsible for handling all operations related to editing existing game entries in the catalog.
 
-## ⚙️ Tech Stack
+## Features
 
-- Java 17
-- Spring Boot
-- MongoDB (NoSQL)
-- REST API
+- Update game details (title, description, genre, etc.)
+- Validate input data before updating
+- Handle partial updates
+- Return appropriate status codes and error messages
 
-## 🛠️ How to Run
+## Technologies Used
 
-1. Ensure MongoDB is running at:
-   mongodb://root:example@localhost:27058/
+- Node.js
+- Express.js
+- MongoDB (Mongoose)
+- Docker (optional)
+
+## Endpoints
+
+| Method | Endpoint         | Description           |
+|--------|-----------------|-----------------------|
+| PUT    | `/games/:id`    | Update a game by ID   |
+| PATCH  | `/games/:id`    | Partially update game |
+
+## Environment Variables
+
+- `MONGODB_URI`: MongoDB connection string
+- `PORT`: Port number for the service
+
+## Running Locally
+
+```bash
+npm install
+npm start
+```
+
+## Docker
+
+```bash
+docker build -t edit-game-service .
+docker run -p 3000:3000 --env-file .env edit-game-service
+```
+
+## License
+
+MIT
