@@ -1,112 +1,73 @@
-# 🎮 Genre & Category Management Microservice
+# Genre Category Management Microservice
 
-This is a standalone microservice for managing **genres** and **categories** of video games.  
-It is part of the **Digital Video Game Store** project, within the **Catalog** domain.
+This microservice is responsible for managing genres and categories within the video game catalog system.
 
----
+## Features
 
-## 🛠️ Tech Stack
+- Create, update, delete, and retrieve genres and categories
+- RESTful API endpoints
+- Data validation and error handling
 
-- ✅ Language: **Go**
-- ✅ Framework: **net/http (standard lib)**
-- ✅ Architecture: **REST**
-- ✅ Database: **MySQL**
-- ✅ Type: **Relational DB**
-- ✅ Port: `3016`
+## Technologies Used
 
----
+- .NET / ASP.NET Core
+- Entity Framework Core
+- SQL Server (or your preferred database)
+- Docker (optional)
 
-## 🧱 Project Structure
+## Getting Started
 
-```
+### Prerequisites
 
-genre-category-management/
-├── Dockerfile
-├── go.mod
-├── go.sum
-├── main.go
-├── .env
-├── README.md
-├── handlers/
-│   └── genre\_handler.go
-├── models/
-│   └── genre.go
-├── config/
-│   └── db.go
-├── routes/
-│   └── routes.go
+- [.NET SDK](https://dotnet.microsoft.com/download)
+- [SQL Server](https://www.microsoft.com/en-us/sql-server) or another supported database
 
+### Installation
 
-## ⚙️ Environment Variables (`.env`)
+1. Clone the repository:
+  ```bash
+  git clone <repository-url>
+  ```
+2. Navigate to the project directory:
+  ```bash
+  cd genre-category-management-create
+  ```
+3. Restore dependencies:
+  ```bash
+  dotnet restore
+  ```
+4. Update the database connection string in `appsettings.json`.
 
-```env
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=example
-DB_NAME=genre_category_db
-````
+5. Run database migrations:
+  ```bash
+  dotnet ef database update
+  ```
 
-> 💡 Make sure the database and table exist in MySQL.
-
----
-
-## 🚀 Running Locally
+### Running the Service
 
 ```bash
-go mod tidy
-go run main.go
+dotnet run
 ```
 
-Visit: `http://localhost:3016/api/genres`
+The API will be available at `http://localhost:<port>/api/genres` and `http://localhost:<port>/api/categories`.
 
----
+## API Endpoints
 
-## 🐳 Docker Usage
+- `GET /api/genres` - List all genres
+- `POST /api/genres` - Create a new genre
+- `PUT /api/genres/{id}` - Update a genre
+- `DELETE /api/genres/{id}` - Delete a genre
 
-### Build Docker image
+- `GET /api/categories` - List all categories
+- `POST /api/categories` - Create a new category
+- `PUT /api/categories/{id}` - Update a category
+- `DELETE /api/categories/{id}` - Delete a category
 
-```bash
-docker build -t genre-category-management .
-```
+## License
 
-### Run Docker container
+This project is licensed under the MIT License.
 
-```bash
-docker run -d -p 3016:3016 --env-file .env genre-category-management
-```
+## Authors
 
----
-
-## 📬 API Endpoints
-
-### GET /api/genres
-
-Retrieve all genres.
-
-### POST /api/genres
-
-Create a new genre.
-**Body Example:**
-
-```json
-{
-  "name": "Action"
-}
-```
-
----
-
-## 👨‍💻 Author
-
-Proyecto desarrollado por Nando Martinez – *Distribuited Systems Project*
-
----
-
-## 🧩 Related Microservices
-
-* `get-game-by-id`
-* `edit-game`
-* `list-games`
-* `register-new-game`
-* `genre-category-management` ✅ (you are here)
+- [Your Name]
+- [Contributors]
