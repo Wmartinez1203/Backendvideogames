@@ -68,7 +68,6 @@ jobs:
             echo "DB_NAME=${{ secrets.DB_NAME }}" >> ~/create-user.env
             echo "DB_PORT=${{ secrets.DB_PORT }}" >> ~/create-user.env
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ~/create-user.env
-            # Agrega más variables si necesitas
 
             echo "==> Pulling Docker image"
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
@@ -81,7 +80,6 @@ jobs:
               echo "No previous container to stop or remove"
             fi
 
-
             echo "==> Running new container"
             sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.APP_PORT }}:8080 \
               --env-file ~/create-user.env \
@@ -90,6 +88,8 @@ jobs:
             echo "==> Verifying container startup"
             if sudo docker ps -f name=${{ env.IMAGE_NAME }} | grep ${{ env.IMAGE_NAME }}; then
               echo "✅ Deployment successful"
+              echo "==> Cleaning up environment file"
+              rm -f ~/create-user.env
             else
               echo "❌ Deployment failed"
               exit 1
