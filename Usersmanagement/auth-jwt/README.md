@@ -1,14 +1,15 @@
-# 🔐 Microservicio de Autenticación con JWT y Redis
+# 🔐 Authentication Microservice with JWT and Redis
 
-Este microservicio permite la autenticación de usuarios mediante correo y contraseña, generando un JWT al validar correctamente las credenciales.
+This microservice enables user authentication via email and password, generating a JWT upon successful credential validation.
 
-### 🧰 Tecnologías
+### 🧰 Technologies
 - Node.js
 - GraphQL (Apollo Server)
-- Redis (almacenamiento en memoria)
+- Redis (in-memory storage)
 - JSON Web Tokens (JWT)
 
-### 📦 Instalación
+### 📦 Installation
 
 ```bash
 npm install
+```
