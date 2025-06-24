@@ -83,7 +83,7 @@ jobs:
             fi
 
             echo "==> Running new container"
-            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.APP_PORT }}:8080 \
+            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.APP_PORT }}:3000 \
               --env-file ~/create-user.env \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
