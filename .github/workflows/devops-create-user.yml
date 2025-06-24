@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - 'Usersmanagement/create-user/**'
+      - '.github/workflows/devops-create-user.yml'
     branches: [ "dev" ]
   pull_request:
     paths:
       - 'Usersmanagement/create-user/**'
+      - '.github/workflows/devops-create-user.yml'
     branches:
       - "QA"
       - "main"
