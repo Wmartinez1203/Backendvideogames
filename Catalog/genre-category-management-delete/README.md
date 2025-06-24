@@ -1,112 +1,45 @@
-# 🎮 Genre & Category Management Microservice
+# Genre Category Management Delete Microservice
 
-This is a standalone microservice for managing **genres** and **categories** of video games.  
-It is part of the **Digital Video Game Store** project, within the **Catalog** domain.
+This microservice is responsible for handling the deletion of genre-category associations in the video game catalog system.
 
----
+## Features
 
-## 🛠️ Tech Stack
+- Delete associations between genres and categories.
+- Ensures data consistency and integrity.
+- Provides RESTful API endpoints for deletion operations.
 
-- ✅ Language: **Go**
-- ✅ Framework: **net/http (standard lib)**
-- ✅ Architecture: **REST**
-- ✅ Database: **MySQL**
-- ✅ Type: **Relational DB**
-- ✅ Port: `3016`
+## Technologies Used
 
----
+- .NET Core / ASP.NET Core
+- Entity Framework Core
+- SQL Server (or your preferred database)
+- Docker (optional)
 
-## 🧱 Project Structure
+## Endpoints
 
-```
+| Method | Endpoint                      | Description                       |
+|--------|-------------------------------|-----------------------------------|
+| DELETE | `/api/genre-category/{id}`    | Deletes a genre-category relation |
 
-genre-category-management/
-├── Dockerfile
-├── go.mod
-├── go.sum
-├── main.go
-├── .env
-├── README.md
-├── handlers/
-│   └── genre\_handler.go
-├── models/
-│   └── genre.go
-├── config/
-│   └── db.go
-├── routes/
-│   └── routes.go
+## Setup
 
+1. Clone the repository.
+2. Restore dependencies:  
+  `dotnet restore`
+3. Update database connection string in `appsettings.json`.
+4. Run migrations (if needed):  
+  `dotnet ef database update`
+5. Start the service:  
+  `dotnet run`
 
-## ⚙️ Environment Variables (`.env`)
+## Environment Variables
 
-```env
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=example
-DB_NAME=genre_category_db
-````
+- `ConnectionStrings:DefaultConnection` - Database connection string.
 
-> 💡 Make sure the database and table exist in MySQL.
+## Usage
 
----
+Send a DELETE request to the appropriate endpoint with the ID of the genre-category association to remove.
 
-## 🚀 Running Locally
+## License
 
-```bash
-go mod tidy
-go run main.go
-```
-
-Visit: `http://localhost:3016/api/genres`
-
----
-
-## 🐳 Docker Usage
-
-### Build Docker image
-
-```bash
-docker build -t genre-category-management .
-```
-
-### Run Docker container
-
-```bash
-docker run -d -p 3016:3016 --env-file .env genre-category-management
-```
-
----
-
-## 📬 API Endpoints
-
-### GET /api/genres
-
-Retrieve all genres.
-
-### POST /api/genres
-
-Create a new genre.
-**Body Example:**
-
-```json
-{
-  "name": "Action"
-}
-```
-
----
-
-## 👨‍💻 Author
-
-Proyecto desarrollado por Nando Martinez – *Distribuited Systems Project*
-
----
-
-## 🧩 Related Microservices
-
-* `get-game-by-id`
-* `edit-game`
-* `list-games`
-* `register-new-game`
-* `genre-category-management` ✅ (you are here)
+This project is licensed under the MIT License.
