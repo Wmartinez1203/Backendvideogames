@@ -1,33 +1,31 @@
-# Microservicio: Crear Usuario Test 3
+# Microservice: Create User Test 3
 
-Este microservicio permite crear usuarios internos en la base de datos PostgreSQL. Las tablas se autogeneran con Sequelize.
+This microservice allows you to create internal users in a PostgreSQL database. Tables are auto-generated with Sequelize.
 
-## Tecnologías
+## Technologies
 - Node.js + Express
 - Sequelize ORM
 - PostgreSQL
-- JWT (implementación básica)
+- JWT (basic implementation)
 - Docker-ready
 
 ## Endpoints
 
-- `POST /api/usuarios` → Crear un nuevo usuario
+- `POST /api/usuarios` → Create a new user
 
-## Variables de entorno (.env)
+## Environment Variables (.env)
 ```env
 DB_HOST=localhost
 DB_USER=postgres
-DB_PASSWORD=tu_clave
+DB_PASSWORD=your_password
 DB_NAME=usuarios_db
 DB_PORT=5432
-JWT_SECRET=clave_secreta_segura
-````
-
-````
+JWT_SECRET=secure_secret_key
+```
 
 ---
 
-## 🗂️ `/src` subcarpetas
+## 🗂️ `/src` subfolders
 
 ### ✅ `src/config/db.config.js`
 
@@ -48,7 +46,7 @@ const sequelize = new Sequelize(
 );
 
 module.exports = sequelize;
-````
+```
 
 ---
 
@@ -99,18 +97,18 @@ const crearUsuario = async (req, res) => {
     const { nombre, correo, contraseña } = req.body;
 
     if (!nombre || !correo || !contraseña) {
-      return res.status(400).json({ error: "Todos los campos son obligatorios" });
+      return res.status(400).json({ error: "All fields are required" });
     }
 
     const existente = await User.findOne({ where: { correo } });
     if (existente) {
-      return res.status(409).json({ error: "El correo ya está registrado" });
+      return res.status(409).json({ error: "Email is already registered" });
     }
 
     const nuevoUsuario = await User.create({ nombre, correo, contraseña });
 
     res.status(201).json({
-      message: "Usuario creado exitosamente",
+      message: "User created successfully",
       usuario: {
         id: nuevoUsuario.id,
         nombre: nuevoUsuario.nombre,
@@ -142,7 +140,7 @@ module.exports = router;
 
 ---
 
-### ✅ `src/middleware/auth.js` (básico)
+### ✅ `src/middleware/auth.js` (basic)
 
 ```js
 const jwt = require("jsonwebtoken");
@@ -152,14 +150,14 @@ const verificarToken = (req, res, next) => {
   const token = req.headers["authorization"];
 
   if (!token)
-    return res.status(403).json({ error: "Token no proporcionado" });
+    return res.status(403).json({ error: "Token not provided" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.usuario = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ error: "Token inválido" });
+    return res.status(401).json({ error: "Invalid token" });
   }
 };
 
@@ -185,43 +183,43 @@ app.use(express.json());
 
 app.use("/api", userRoutes);
 
-sequelize.sync({ alter: true }) // Autogenera tablas si no existen
+sequelize.sync({ alter: true }) // Auto-generates tables if they do not exist
   .then(() => {
-    console.log("🟢 Base de datos sincronizada correctamente");
+    console.log("🟢 Database synchronized successfully");
     app.listen(3000, () => {
-      console.log("🚀 Microservicio Crear Usuario corriendo en http://localhost:3000");
+      console.log("🚀 Create User Microservice running at http://localhost:3000");
     });
   })
   .catch((err) => {
-    console.error("🔴 Error al sincronizar base de datos:", err.message);
+    console.error("🔴 Error synchronizing database:", err.message);
   });
 ```
 
 ---
 
-### ✅ Cómo correr el microservicio
+### ✅ How to run the microservice
 
-1. Instala dependencias:
+1. Install dependencies:
 
 ```bash
 npm install
 ```
 
-2. Asegúrate de tener PostgreSQL corriendo con los datos de `.env`.
+2. Make sure PostgreSQL is running with the data from `.env`.
 
-3. Corre la app:
+3. Run the app:
 
 ```bash
 npm start
 ```
 
-4. Haz un `POST` a:
+4. Make a `POST` request to:
 
 ```
 http://localhost:3000/api/usuarios
 ```
 
-Con JSON:
+With JSON:
 
 ```json
 {
@@ -232,4 +230,3 @@ Con JSON:
 ```
 
 ---
-
