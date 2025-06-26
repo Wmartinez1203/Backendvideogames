@@ -1,4 +1,4 @@
-name: Docker Image CI/CD for Get User By Id Service
+name: Docker Image CI/CD for Get User By Id Test 1
 
 on:
   push:
@@ -25,6 +25,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Free up disk space
+        run: |
+          echo "Before cleanup:"
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo apt-get clean
+          echo "After cleanup:"
+          df -h
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -64,35 +75,33 @@ jobs:
 
             echo "==> Creating environment file"
             echo "APP_PORT=${{ secrets.APP_PORT }}" > ~/get-user-by-id.env
-            echo "PG_HOST=${{ secrets.PG_HOST }}" >> ~/get-user-by-id.env
-            echo "PG_USER=${{ secrets.PG_USER }}" >> ~/get-user-by-id.env
-            echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> ~/get-user-by-id.env
-            echo "PG_DATABASE=${{ secrets.PG_DATABASE }}" >> ~/get-user-by-id.env
-            echo "PG_PORT=${{ secrets.PG_PORT }}" >> ~/get-user-by-id.env
-            echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> ~/get-user-by-id.env
+            echo "PG_HOST=${{ secrets.DB_HOST }}" >> ~/get-user-by-id.env
+            echo "PG_USER=${{ secrets.DB_USER }}" >> ~/get-user-by-id.env
+            echo "PG_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ~/get-user-by-id.env
+            echo "PG_DATABASE=${{ secrets.DB_NAME }}" >> ~/get-user-by-id.env
+            echo "PG_PORT=${{ secrets.DB_PORT }}" >> ~/get-user-by-id.env
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ~/get-user-by-id.env
-            echo "PORT=${{ secrets.PORT_GBI }}" >> ~/get-user-by-id.env
+            echo "PORT=${{ secrets.APP_PORT }}" >> ~/get-user-by-id.env
 
             echo "==> Pulling Docker image"
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
             echo "==> Stopping old container (if exists)"
-            if sudo docker ps -aq -f name=usersmanagement-get-user-by-id; then
-              sudo docker stop usersmanagement-get-user-by-id || true
-              sudo docker rm usersmanagement-get-user-by-id || true
+            if sudo docker ps -aq -f name=${{ env.IMAGE_NAME }}; then
+              sudo docker stop ${{ env.IMAGE_NAME }} || true
+              sudo docker rm ${{ env.IMAGE_NAME }} || true
             else
               echo "No previous container to stop or remove"
             fi
 
             echo "==> Running new container"
-            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.PORT_GBI }}:4000 \
+            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.APP_PORT }}:4000 \
               --env-file ~/get-user-by-id.env \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
             echo "==> Verifying container startup"
             if sudo docker ps -f name=${{ env.IMAGE_NAME }} | grep ${{ env.IMAGE_NAME }}; then
               echo "✅ Deployment successful"
-              echo "==> Cleaning up environment file"
               rm -f ~/get-user-by-id.env
             else
               echo "❌ Deployment failed"
