@@ -1,4 +1,4 @@
-name: Docker Image CI/CD for Get User By Id TEST 2
+name: Docker Image CI/CD for Get User By Id
 
 on:
   push:
