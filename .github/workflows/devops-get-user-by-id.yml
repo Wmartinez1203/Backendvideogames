@@ -1,4 +1,4 @@
-name: Docker Image CI/CD for Get User By Id Test 1
+name: Docker Image CI/CD for Get User By Id TEST 2
 
 on:
   push:
@@ -51,7 +51,7 @@ jobs:
           docker build Usersmanagement/get-user-by-id/. --file Usersmanagement/get-user-by-id/Dockerfile \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }} \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-          
+
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
