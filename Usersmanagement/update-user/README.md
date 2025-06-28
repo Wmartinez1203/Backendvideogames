@@ -1,4 +1,4 @@
-# Update User Microservice Test 1
+# Update User Microservice Test 2
 
 This microservice is responsible for updating user information within the system. It is part of the Users Management module in the distributed backend for the video games project.
 
