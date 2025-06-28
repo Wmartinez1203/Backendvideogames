@@ -1,39 +1,39 @@
-# .github/workflows/devops-register-new-game.yml
-name: Docker Image CI/CD for Register New Game Service
+name: Docker CI/CD for Register New Game
 
 on:
   push:
     paths:
-      - 'Usersmanagement/register-new-game/**'
+      - 'Catalog/register-new-game/**'
       - '.github/workflows/devops-register-new-game.yml'
-    branches:
-      - dev
+    branches: [ "dev" ]
   pull_request:
     paths:
-      - 'Usersmanagement/register-new-game/**'
+      - 'Catalog/register-new-game/**'
       - '.github/workflows/devops-register-new-game.yml'
     branches:
-      - QA
-      - main
+      - "QA"
+      - "main"
 
 jobs:
   build-and-deploy:
+    name: Build, Push Docker Image and Deploy to EC2
     runs-on: ubuntu-latest
+
     env:
       IMAGE_NAME: register-new-game
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          distribution: temurin
           java-version: '17'
+          distribution: 'temurin'
 
       - name: Build JAR with Maven
-        working-directory: Usersmanagement/register-new-game   # Ajusta si tu carpeta difiere
+        working-directory: Catalog/register-new-game
         run: mvn clean package -DskipTests
 
       - name: Set up Docker Buildx
@@ -47,9 +47,11 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build Usersmanagement/register-new-game/. \
-            --file Usersmanagement/register-new-game/Dockerfile \
+          docker build Catalog/register-new-game/ --file Catalog/register-new-game/Dockerfile \
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }} \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Deploy to EC2
@@ -62,29 +64,24 @@ jobs:
           script: |
             set -e
 
-            # Instalar Docker si falta
-            if ! command -v docker &> /dev/null; then
-              sudo apt-get update -y
-              sudo apt-get install -y docker.io
-            fi
-
-            # Limpiar espacio en Docker
-            sudo docker system prune -af --volumes
-
-            # Crear archivo de entorno
-            echo "SPRING_DATA_MONGODB_URI=${{ secrets.MONGO_URI }}" > ~/register-new-game.env
-            echo "SPRING_DATA_MONGODB_DATABASE=${{ secrets.MONGO_DB }}" >> ~/register-new-game.env
+            echo "==> Creating environment file"
+            echo "SPRING_DATA_MONGODB_URI=mongodb://root:example@3.219.108.100:27058/" > ~/register-new-game.env
+            echo "SPRING_DATA_MONGODB_DATABASE=game_catalog_db" >> ~/register-new-game.env
             echo "SERVER_PORT=3012" >> ~/register-new-game.env
 
-            # Pull y despliegue
+            echo "==> Pulling Docker image"
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-            if sudo docker ps -q -f name=${{ env.IMAGE_NAME }}; then
-              sudo docker rm -f ${{ env.IMAGE_NAME }}
+
+            echo "==> Stopping old container (if exists)"
+            if sudo docker ps -aq -f name=${{ env.IMAGE_NAME }}; then
+              sudo docker stop ${{ env.IMAGE_NAME }} || true
+              sudo docker rm ${{ env.IMAGE_NAME }} || true
             fi
-            sudo docker run -d --name ${{ env.IMAGE_NAME }} \
-              -p 3012:3012 \
+
+            echo "==> Running new container"
+            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p 3012:3012 \
               --env-file ~/register-new-game.env \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
-            # Limpieza de env file
+            echo "==> Cleaning up environment file"
             rm -f ~/register-new-game.env
