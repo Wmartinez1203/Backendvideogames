@@ -84,7 +84,7 @@ jobs:
             fi
 
             echo "==> Running new container on port 3001"
-            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p 3001:4000 \
+            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p 3003:4000 \
               --env-file ~/get-user-by-id.env \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
