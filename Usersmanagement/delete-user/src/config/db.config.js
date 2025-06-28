@@ -1,16 +1,15 @@
+// Usersmanagement/delete-user/config/db.config.js
 require("dotenv").config();
 const { Sequelize } = require("sequelize");
 
-const sequelize = new Sequelize(
+module.exports = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
   process.env.DB_PASSWORD,
   {
     host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
+    port: parseInt(process.env.DB_PORT, 10),
     dialect: "postgres",
-    logging: false
+    logging: console.log,
   }
 );
-
-module.exports = sequelize;
