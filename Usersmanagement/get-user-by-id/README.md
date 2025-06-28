@@ -1,4 +1,4 @@
-# 📘 Get User by ID Microservice Test 4
+# 📘 Get User by ID Microservice Test 1
 
 Microservice to obtain user information by ID using GraphQL.
 Part of the distributed digital game sales system.
