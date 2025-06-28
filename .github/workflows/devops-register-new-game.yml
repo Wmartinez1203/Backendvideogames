@@ -44,8 +44,7 @@ jobs:
             ${{ runner.os }}-m2-
 
       - name: Build JAR with Maven
-        # ← ADJUST this path if it differs: use the exact folder name as shown by the Debug step
-        working-directory: Usersmanagement/register-new-game
+        working-directory: Usersmanagement/register-new-game   # ← AJUSTA según Debug
         run: mvn clean package -DskipTests
 
       - name: Set up Docker Buildx
@@ -89,11 +88,9 @@ jobs:
             sudo docker system prune -af --volumes
 
             echo "==> Creating environment file"
-            cat > ~/register-new-game.env <<EOF
-            SPRING_DATA_MONGODB_URI=${{ secrets.MONGO_URI }}
-            SPRING_DATA_MONGODB_DATABASE=${{ secrets.MONGO_DB }}
-            SERVER_PORT=3012
-            EOF
+            echo "SPRING_DATA_MONGODB_URI=${{ secrets.MONGO_URI }}"   > ~/register-new-game.env
+            echo "SPRING_DATA_MONGODB_DATABASE=${{ secrets.MONGO_DB }}" >> ~/register-new-game.env
+            echo "SERVER_PORT=3012"                                   >> ~/register-new-game.env
 
             echo "==> Pulling latest Docker image"
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
