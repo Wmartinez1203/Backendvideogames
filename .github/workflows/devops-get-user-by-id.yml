@@ -63,14 +63,14 @@ jobs:
             fi
 
             echo "==> Creating environment file"
-            echo "APP_PORT=${{ secrets.APP_PORT }}" > ~/get-user-by-id.env
+            echo "APP_PORT=4000" > ~/get-user-by-id.env
             echo "PG_HOST=${{ secrets.DB_HOST }}" >> ~/get-user-by-id.env
             echo "PG_USER=${{ secrets.DB_USER }}" >> ~/get-user-by-id.env
             echo "PG_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ~/get-user-by-id.env
             echo "PG_DATABASE=${{ secrets.DB_NAME }}" >> ~/get-user-by-id.env
             echo "PG_PORT=${{ secrets.DB_PORT }}" >> ~/get-user-by-id.env
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ~/get-user-by-id.env
-            echo "PORT=${{ secrets.APP_PORT }}" >> ~/get-user-by-id.env
+            echo "PORT=4000" >> ~/get-user-by-id.env
 
             echo "==> Pulling Docker image"
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
@@ -83,8 +83,8 @@ jobs:
               echo "No previous container to stop or remove"
             fi
 
-            echo "==> Running new container"
-            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.APP_PORT }}:4000 \
+            echo "==> Running new container on port 3001"
+            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p 3001:4000 \
               --env-file ~/get-user-by-id.env \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
