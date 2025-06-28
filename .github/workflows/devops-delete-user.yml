@@ -1,3 +1,4 @@
+# .github/workflows/devops-delete-user.yml
 name: Docker Image CI/CD for Delete User Service
 
 on:
@@ -5,26 +6,22 @@ on:
     paths:
       - 'Usersmanagement/delete-user/**'
       - '.github/workflows/devops-delete-user.yml'
-    branches: [ "dev" ]
+    branches: ["dev"]
   pull_request:
     paths:
       - 'Usersmanagement/delete-user/**'
       - '.github/workflows/devops-delete-user.yml'
-    branches:
-      - "QA"
-      - "main"
+    branches: ["QA", "main"]
 
 jobs:
   build-and-deploy:
-    name: Build, Push Docker Image and Deploy
+    name: Build, Push and Deploy Delete-User Service
     runs-on: ubuntu-latest
-
     env:
       IMAGE_NAME: usersmanagement-delete-user
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -37,10 +34,11 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build Usersmanagement/delete-user/. --file Usersmanagement/delete-user/Dockerfile \
+          docker build Usersmanagement/delete-user/. \
+            --file Usersmanagement/delete-user/Dockerfile \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }} \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-          
+
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
@@ -54,7 +52,7 @@ jobs:
           script: |
             set -e
 
-            echo "==> Installing Docker (if needed)"
+            # Instalar Docker si es necesario
             if ! command -v docker &> /dev/null; then
               sudo apt-get update -y
               sudo apt-get install -y docker.io
@@ -62,36 +60,34 @@ jobs:
               sudo usermod -aG docker $USER
             fi
 
-            echo "==> Creating environment file"
-            echo "APP_PORT=${{ secrets.APP_PORT }}" > ~/delete-user.env
-            echo "PG_HOST=${{ secrets.PG_HOST }}" >> ~/delete-user.env
-            echo "PG_USER=${{ secrets.PG_USER }}" >> ~/delete-user.env
-            echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> ~/delete-user.env
-            echo "PG_DATABASE=${{ secrets.PG_DATABASE }}" >> ~/delete-user.env
-            echo "PG_PORT=${{ secrets.PG_PORT }}" >> ~/delete-user.env
+            # Crear archivo de entorno
+            echo "APP_PORT=3002"               > ~/delete-user.env
+            echo "DB_HOST=${{ secrets.DB_HOST }}"     >> ~/delete-user.env
+            echo "DB_USER=${{ secrets.DB_USER }}"     >> ~/delete-user.env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ~/delete-user.env
+            echo "DB_NAME=${{ secrets.DB_NAME }}"      >> ~/delete-user.env
+            echo "DB_PORT=${{ secrets.DB_PORT }}"      >> ~/delete-user.env
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ~/delete-user.env
-            echo "PORT=8000" >> ~/delete-user.env  # Interno del contenedor
+            echo "PORT=3002"                    >> ~/delete-user.env
 
-            echo "==> Pulling Docker image"
+            # Pull última imagen
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
-            echo "==> Stopping old container (if exists)"
+            # Detener y eliminar contenedor antiguo
             if sudo docker ps -aq -f name=${{ env.IMAGE_NAME }}; then
               sudo docker stop ${{ env.IMAGE_NAME }} || true
               sudo docker rm ${{ env.IMAGE_NAME }} || true
-            else
-              echo "No previous container to stop or remove"
             fi
 
-            echo "==> Running new container on port 3002"
-            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p 3002:8000 \
+            # Iniciar nuevo contenedor en 3002:3002
+            sudo docker run -d --name ${{ env.IMAGE_NAME }} \
+              -p 3002:3002 \
               --env-file ~/delete-user.env \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
-            echo "==> Verifying container startup"
-            if sudo docker ps -f name=${{ env.IMAGE_NAME }} | grep ${{ env.IMAGE_NAME }}; then
+            # Verificar
+            if sudo docker ps -f name=${{ env.IMAGE_NAME }} | grep -q ${{ env.IMAGE_NAME }}; then
               echo "✅ Deployment successful"
-              echo "==> Cleaning up environment file"
               rm -f ~/delete-user.env
             else
               echo "❌ Deployment failed"
