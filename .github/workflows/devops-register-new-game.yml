@@ -1,0 +1,85 @@
+name: Docker Image CI/CD for Register New Game Service
+
+on:
+  push:
+    paths:
+      - 'Gamecatalog/register-new-game/**'
+      - '.github/workflows/devops-register-new-game.yml'
+    branches: [ "dev" ]
+  pull_request:
+    paths:
+      - 'Gamecatalog/register-new-game/**'
+      - '.github/workflows/devops-register-new-game.yml'
+    branches:
+      - "QA"
+      - "main"
+
+jobs:
+  build-and-deploy:
+    name: Build, Push Docker Image and Deploy
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: gamecatalog-register-new-game
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build Gamecatalog/register-new-game/. --file Gamecatalog/register-new-game/Dockerfile \
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }} \
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          script: |
+            set -e
+
+            echo "==> Creating environment file"
+            echo "SPRING_DATA_MONGODB_URI=mongodb://root:example@3.219.108.100:27017/game_catalog_db" > ~/register-new-game.env
+            echo "SPRING_APPLICATION_NAME=register-new-game" >> ~/register-new-game.env
+            echo "SERVER_PORT=3012" >> ~/register-new-game.env
+
+            echo "==> Pulling Docker image"
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+            echo "==> Stopping old container (if exists)"
+            if sudo docker ps -aq -f name=gamecatalog-register-new-game; then
+              sudo docker stop gamecatalog-register-new-game || true
+              sudo docker rm gamecatalog-register-new-game || true
+            else
+              echo "No previous container to stop or remove"
+            fi
+
+            echo "==> Running new container"
+            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p 3012:3012 \
+              --env-file ~/register-new-game.env \
+              ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+            echo "==> Verifying container startup"
+            if sudo docker ps -f name=${{ env.IMAGE_NAME }} | grep ${{ env.IMAGE_NAME }}; then
+              echo \"✅ Deployment successful\"
+              rm -f ~/register-new-game.env
+            else
+              echo \"❌ Deployment failed\"
+              exit 1
+            fi
