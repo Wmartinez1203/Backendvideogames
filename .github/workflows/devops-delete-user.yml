@@ -63,14 +63,14 @@ jobs:
             fi
 
             echo "==> Creating environment file"
-            echo "APP_PORT=${{ secrets.DELETE_APP_PORT }}" > ~/delete-user.env
+            echo "APP_PORT=${{ secrets.APP_PORT }}" > ~/delete-user.env
             echo "PG_HOST=${{ secrets.PG_HOST }}" >> ~/delete-user.env
             echo "PG_USER=${{ secrets.PG_USER }}" >> ~/delete-user.env
             echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> ~/delete-user.env
             echo "PG_DATABASE=${{ secrets.PG_DATABASE }}" >> ~/delete-user.env
             echo "PG_PORT=${{ secrets.PG_PORT }}" >> ~/delete-user.env
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ~/delete-user.env
-            echo "PORT=${{ secrets.DELETE_APP_PORT }}" >> ~/delete-user.env
+            echo "PORT=8000" >> ~/delete-user.env  # Interno del contenedor
 
             echo "==> Pulling Docker image"
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
@@ -83,8 +83,8 @@ jobs:
               echo "No previous container to stop or remove"
             fi
 
-            echo "==> Running new container"
-            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.DELETE_APP_PORT }}:8000 \
+            echo "==> Running new container on port 3002"
+            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p 3002:8000 \
               --env-file ~/delete-user.env \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
