@@ -49,7 +49,7 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
-      - name: Deploy to EC2
+            - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -58,6 +58,7 @@ jobs:
           port: 22
           script: |
             set -e
+            export APP_PORT=${{ env.APP_PORT }}
 
             echo "==> Installing Docker (if needed)"
             if ! command -v docker &> /dev/null; then
