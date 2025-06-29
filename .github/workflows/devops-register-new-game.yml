@@ -1,87 +1,58 @@
-name: Docker CI/CD for Register New Game
+name: Deploy register-new-game Microservice
 
 on:
   push:
-    paths:
-      - 'Catalog/register-new-game/**'
-      - '.github/workflows/devops-register-new-game.yml'
-    branches: [ "dev" ]
-  pull_request:
-    paths:
-      - 'Catalog/register-new-game/**'
-      - '.github/workflows/devops-register-new-game.yml'
     branches:
-      - "QA"
-      - "main"
+      - main
+    paths:
+      - 'register-new-game/**'
+      - '.github/workflows/devops-register-new-game.yml'
 
 jobs:
   build-and-deploy:
-    name: Build, Push Docker Image and Deploy to EC2
     runs-on: ubuntu-latest
 
-    env:
-      IMAGE_NAME: register-new-game
-
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Java
-        uses: actions/setup-java@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          node-version: '18'
 
-      - name: Build JAR with Maven
-        working-directory: Catalog/register-new-game
-        run: mvn clean package -DskipTests
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push Docker image
+      - name: Install dependencies
         run: |
-          docker build Catalog/register-new-game/ --file Catalog/register-new-game/Dockerfile \
-            --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }} \
-            --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          cd register-new-game
+          npm install
 
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+      - name: Build microservice
+        run: |
+          cd register-new-game
+          npm run build
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v0.1.6
+      - name: Copy files to remote server
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.REMOTE_SSH_KEY }}
+          source: "register-new-game/"
+          target: "~/register-new-game/"
+
+      - name: Deploy microservice via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.REMOTE_SSH_KEY }}
           script: |
-            set -e
+            cd ~/register-new-game
+            export MONGO_URL="${{ secrets.MONGO_URL }}"
+            export PORT=${{ vars.REGISTER_NEW_GAME_PORT }}
+            pm2 delete register-new-game || true
+            pm2 start dist/index.js --name register-new-game --env production
 
-            echo "==> Creating environment file"
-            echo "SPRING_DATA_MONGODB_URI=mongodb://root:example@3.219.108.100:27058/" > ~/register-new-game.env
-            echo "SPRING_DATA_MONGODB_DATABASE=game_catalog_db" >> ~/register-new-game.env
-            echo "SERVER_PORT=3012" >> ~/register-new-game.env
-
-            echo "==> Pulling Docker image"
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-
-            echo "==> Stopping old container (if exists)"
-            if sudo docker ps -aq -f name=${{ env.IMAGE_NAME }}; then
-              sudo docker stop ${{ env.IMAGE_NAME }} || true
-              sudo docker rm ${{ env.IMAGE_NAME }} || true
-            fi
-
-            echo "==> Running new container"
-            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p 3012:3012 \
-              --env-file ~/register-new-game.env \
-              ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-
-            echo "==> Cleaning up environment file"
-            rm -f ~/register-new-game.env
+      - name: Verify deployment
+        run: |
+          curl --fail http://${{ secrets.REMOTE_HOST }}:${{ vars.REGISTER_NEW_GAME_PORT }}/health || exit 1
