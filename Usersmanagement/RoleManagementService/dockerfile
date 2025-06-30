@@ -1,24 +1,21 @@
-# Etapa de construcción
+# Etapa 1: build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copiar el archivo .csproj con su estructura
-COPY RoleManagementService/RoleManagementService/RoleManagementService.csproj ./RoleManagementService/
-WORKDIR /app/RoleManagementService
-RUN dotnet restore
+# Copiamos el archivo .csproj
+COPY RoleManagementService/RoleManagementService.csproj ./RoleManagementService/
 
-# Copiar todo el código fuente
-WORKDIR /app
-COPY RoleManagementService/RoleManagementService/. ./RoleManagementService/
+# Restauramos dependencias
+RUN dotnet restore ./RoleManagementService/RoleManagementService.csproj
 
-# Publicar
-WORKDIR /app/RoleManagementService
-RUN dotnet publish -c Release -o /app/out
+# Copiamos el resto del código fuente
+COPY RoleManagementService/. ./RoleManagementService/
 
-# Imagen final
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# Publicamos el proyecto
+RUN dotnet publish ./RoleManagementService/RoleManagementService.csproj -c Release -o out
+
+# Etapa 2: runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/out ./
-
-EXPOSE 80
 ENTRYPOINT ["dotnet", "RoleManagementService.dll"]
