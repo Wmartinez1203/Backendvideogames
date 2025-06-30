@@ -2,25 +2,25 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copy the RoleManagementService.csproj file
-COPY Usersmanagement/RoleManagementService/*.csproj ./ 
+# Copy the .csproj file
+COPY ./RoleManagementService.csproj ./
 
-# Restore dependencies (via NuGet)
-RUN dotnet restore ./RoleManagementService.csproj
+# Restore dependencies
+RUN dotnet restore RoleManagementService.csproj
 
-# Copy the rest of the source code
-COPY Usersmanagement/RoleManagementService/. ./
+# Copy the entire project
+COPY . ./
 
-# Publish the app to the 'out' folder
-RUN dotnet publish ./RoleManagementService.csproj -c Release -o out
+# Publish the application
+RUN dotnet publish RoleManagementService.csproj -c Release -o out
 
-# Build runtime image
+# Build the runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/out ./
 
-# Expose port (you can modify it later for other ports)
+# Expose container port (matches Program.cs default unless overridden by env)
 EXPOSE 80
 
-# Set the entrypoint to run the app
+# Run the app
 ENTRYPOINT ["dotnet", "RoleManagementService.dll"]
