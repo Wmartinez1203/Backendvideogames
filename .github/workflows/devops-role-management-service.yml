@@ -2,17 +2,16 @@ name: Docker Image CI/CD for Role Management Service TEST 2
 
 on:
   push:
-    paths:
-      - 'Usersmanagement/RoleManagementService/**'
-      - '.github/workflows/devops-role-management-service.yml'
     branches: [ "dev" ]
-  pull_request:
     paths:
       - 'Usersmanagement/RoleManagementService/**'
       - '.github/workflows/devops-role-management-service.yml'
-    branches:
-      - "QA"
-      - "main"
+
+  pull_request:
+    branches: [ "QA", "main" ]
+    paths:
+      - 'Usersmanagement/RoleManagementService/**'
+      - '.github/workflows/devops-role-management-service.yml'
 
 jobs:
   build-and-deploy:
