@@ -6,14 +6,14 @@ from sqlalchemy.future import select
 
 @strawberry.type
 class UserType:
-    id: int  # ✅ ID como entero
+    id: int
     nombre: str
     correo: str
 
 @strawberry.type
 class Query:
     @strawberry.field
-    async def get_user_by_id(self, id: int) -> Optional[UserType]:  # ✅ Recibe entero
+    async def get_user_by_id(self, id: int) -> Optional[UserType]:
         async for db in get_db():
             result = await db.execute(select(User).where(User.id == id))
             user = result.scalars().first()
