@@ -69,7 +69,7 @@ jobs:
             fi
 
             echo "==> Creating environment file"
-            echo "SPRING_DATA_MONGODB_URI=mongodb://root:example@52.70.92.58:27017/" > ~/register-new-game.env
+            echo "SPRING_DATA_MONGODB_URI=mongodb://root:example@52.70.92.58:27058/game_catalog_db?authSource=admin" > ~/register-new-game.env
             echo "SERVER_PORT=${APP_PORT}" >> ~/register-new-game.env
 
             echo "==> Pulling Docker image"
