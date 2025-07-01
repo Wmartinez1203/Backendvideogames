@@ -1,4 +1,4 @@
-name: Docker Image CI/CD for Create User Service Test 1
+name: Docker Image CI/CD for Create User Service Test 2
 
 on:
   push:
