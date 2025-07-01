@@ -1,11 +1,27 @@
-import os
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+import os
+from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+PG_USER = os.getenv("PG_USER")
+PG_PASSWORD = os.getenv("PG_PASSWORD")
+PG_HOST = os.getenv("PG_HOST")
+PG_PORT = os.getenv("PG_PORT")
+PG_DATABASE = os.getenv("PG_DATABASE")
+
+missing = []
+if not PG_USER: missing.append("PG_USER")
+if not PG_PASSWORD: missing.append("PG_PASSWORD")
+if not PG_HOST: missing.append("PG_HOST")
+if not PG_PORT: missing.append("PG_PORT")
+if not PG_DATABASE: missing.append("PG_DATABASE")
+
+if missing:
+    raise EnvironmentError(f"Missing required environment variables: {', '.join(missing)}")
+
+DATABASE_URL = f"postgresql+asyncpg://{PG_USER}:{PG_PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DATABASE}"
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
