@@ -1,4 +1,4 @@
-name: Docker Image CI/CD for Role Management Service TEST 5
+name: Docker Image CI/CD for Role Management Service TEST 6
 
 on:
   push:
@@ -46,9 +46,9 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.EC2_MICROSERVICIO2 }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY }}
+          key: ${{ secrets.EC2_KEY2 }}
           port: 22
           script: |
             set -e
