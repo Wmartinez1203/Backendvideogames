@@ -74,7 +74,7 @@ jobs:
             fi
 
             echo "==> Running new container"
-            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.ROLE_PORT_UPDATE }}:8080 \
+            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.ROLE_PORT_UPDATE }}:${{ secrets.ROLE_PORT_UPDATE }} \
               --env-file ~/role-management.env \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
