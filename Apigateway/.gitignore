@@ -1,0 +1,63 @@
+# ==============================
+# .gitignore para nginx-api-gateway-boilerplate
+# ==============================
+
+# Archivos de entorno (variables sensibles)
+.env
+.env.local
+.env.*.local
+
+# Node.js modules (en caso de que haya frontend o scripts Node)
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Directorios temporales del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de Docker y contenedores
+docker-compose.override.yml
+docker-compose.override.yml.*
+*.pid
+*.seed
+*.pid.lock
+
+# Imágenes Docker locales, volúmenes o caches (no suelen ir en git)
+docker-compose.override.yml
+.docker
+
+# Archivos de compilación / cache
+build/
+dist/
+.tmp/
+.cache/
+
+# Archivos de IDE y editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Permisos, claves y certificados
+*.pem
+*.key
+*.crt
+*.cert
+
+# Otros archivos temporales o de sistema
+*.swp
+*.swo
+*.bak
+*.old
+
+# Entrypoint y configuraciones generadas (si son dinámicas)
+# Ejemplo: si generas configuraciones en tiempo de ejecución
+# /nginx/default.template.conf
+
+# Ignorar archivos de certificados si no están versionados (solo si quieres)
+# /nginx/certs/

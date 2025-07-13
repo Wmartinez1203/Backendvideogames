@@ -1,0 +1,15 @@
+services:
+  api-gateway:
+    build: ./nginx  
+    ports:
+      - "80:80"    
+    environment:
+
+      SERVICE1_HOST: ${SERVICE1_HOST}  # Host del primer servicio backend
+      SERVICE1_PORT: ${SERVICE1_PORT}  # Puerto del primer servicio backend
+      SERVICE2_HOST: ${SERVICE2_HOST}  # Host del segundo servicio backend
+      SERVICE2_PORT: ${SERVICE2_PORT}  # Puerto del segundo servicio backend
+      SERVICE3_HOST: ${SERVICE3_HOST}  # Host del tercer servicio backend
+      SERVICE3_PORT: ${SERVICE3_PORT}  # Puerto del tercer servicio backend
+      SERVICE4_HOST: ${SERVICE4_HOST}  # Host del cuarto servicio backend
+      SERVICE4_PORT: ${SERVICE4_PORT}  # Puerto del cuarto servicio backend
