@@ -1,0 +1,89 @@
+name: Docker Image CI/CD for Role Management Service TEST 5
+
+on:
+  push:
+    branches: [ "dev" ]
+    paths:
+      - 'Usersmanagement/RoleManagementService-create/**'
+      - '.github/workflows/devops-role-management-service-create.yml'
+
+  pull_request:
+    branches: [ "QA", "main" ]
+    paths:
+      - 'Usersmanagement/RoleManagementService-create/**'
+      - '.github/workflows/devops-role-management-service-create.yml'
+
+jobs:
+  build-and-deploy:
+    name: Build, Push Docker Image and Deploy
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: usersmanagement-role-management-service-create
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build Usersmanagement/RoleManagementService-create/ --file Usersmanagement/RoleManagementService-create/dockerfile \
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }} \
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          script: |
+            set -e
+
+            echo "==> Creating environment file"
+            echo "APP_PORT=${{ secrets.ROLE_PORT }}" > ~/role-management.env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> ~/role-management.env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> ~/role-management.env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ~/role-management.env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> ~/role-management.env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> ~/role-management.env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ~/role-management.env
+
+            echo "==> Pulling Docker image"
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+            echo "==> Stopping old container (if exists)"
+            if sudo docker ps -aq -f name=${{ env.IMAGE_NAME }}; then
+              sudo docker stop ${{ env.IMAGE_NAME }} || true
+              sudo docker rm ${{ env.IMAGE_NAME }} || true
+            else
+              echo "No previous container to stop or remove"
+            fi
+
+            echo "==> Running new container"
+            sudo docker run -d --name ${{ env.IMAGE_NAME }} -p ${{ secrets.ROLE_PORT }}:8080 \
+              --env-file ~/role-management.env \
+              ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+            echo "==> Verifying container startup"
+            if sudo docker ps -f name=${{ env.IMAGE_NAME }} | grep ${{ env.IMAGE_NAME }}; then
+              echo "✅ Deployment successful"
+              echo "==> Cleaning up environment file"
+              rm -f ~/role-management.env
+            else
+              echo "❌ Deployment failed"
+              exit 1
+            fi

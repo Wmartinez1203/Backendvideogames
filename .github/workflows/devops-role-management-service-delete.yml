@@ -4,14 +4,14 @@ on:
   push:
     branches: [ "dev" ]
     paths:
-      - 'Usersmanagement/RoleManagementService/**'
-      - '.github/workflows/devops-role-management-service.yml'
+      - 'Usersmanagement/RoleManagementService-delete/**'
+      - '.github/workflows/devops-role-management-service-delete.yml'
 
   pull_request:
     branches: [ "QA", "main" ]
     paths:
-      - 'Usersmanagement/RoleManagementService/**'
-      - '.github/workflows/devops-role-management-service.yml'
+      - 'Usersmanagement/RoleManagementService-delete/**'
+      - '.github/workflows/devops-role-management-service-delete.yml'
 
 jobs:
   build-and-deploy:
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE_NAME: usersmanagement-role-management-service
+      IMAGE_NAME: usersmanagement-role-management-service-delete
 
     steps:
       - name: Checkout code
@@ -36,7 +36,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build Usersmanagement/RoleManagementService/ --file Usersmanagement/RoleManagementService/dockerfile \
+          docker build Usersmanagement/RoleManagementService-delete/ --file Usersmanagement/RoleManagementService-delete/dockerfile \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }} \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
