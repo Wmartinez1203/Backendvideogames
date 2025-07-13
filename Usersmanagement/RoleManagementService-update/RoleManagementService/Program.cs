@@ -8,7 +8,7 @@ using SoapCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Puerto fijo
-builder.WebHost.UseUrls("http://localhost:3019");
+builder.WebHost.UseUrls("http://0.0.0.0:3019");
 
 // DI y configuración
 builder.Services.AddSoapCore();
