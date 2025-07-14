@@ -5,14 +5,14 @@ on:
     branches: [ "dev" ]
     paths:
         - 'Catalog/register-new-game/**'
-        - '.github\workflows\devops-register-new-game.yml'
+        - '.github/workflows/devops-register-new-game.yml'
   pull_request:
     branches:
       - "QA"
       - "main"
     paths:
       - 'Catalog/register-new-game/**'
-      - '.github\workflows\devops-register-new-game.yml'
+      - '.github/workflows/devops-register-new-game.yml'
   
 
 jobs:
