@@ -113,7 +113,7 @@ jobs:
             cd /home/${{ secrets.EC2_USER }}/nginx-gateway
 
             echo "🛑 Deteniendo contenedores actuales si existen..."
-            sudo -E docker compose down || echo "No había contenedores activos."
+            docker-compose down || echo "No había contenedores activos."
 
             echo "🚀 Levantando nuevos contenedores..."
             sudo -E \
@@ -127,6 +127,6 @@ jobs:
               SOAP_UPDATE_ROLE_HOST=$SOAP_UPDATE_ROLE_HOST SOAP_UPDATE_ROLE_PORT=$SOAP_UPDATE_ROLE_PORT \
               SOAP_GETBYID_ROLE_HOST=$SOAP_GETBYID_ROLE_HOST SOAP_GETBYID_ROLE_PORT=$SOAP_GETBYID_ROLE_PORT \
               SOAP_GETALL_ROLE_HOST=$SOAP_GETALL_ROLE_HOST SOAP_GETALL_ROLE_PORT=$SOAP_GETALL_ROLE_PORT \
-              docker compose up -d --build
+              docker-compose up -d --build
 
             echo "✅ Despliegue completado correctamente."
