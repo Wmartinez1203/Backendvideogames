@@ -1,0 +1,131 @@
+name: Deploy API Gateway
+
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      CREATE_USER_HOST: ${{ secrets.CREATE_USER_HOST }}
+      CREATE_USER_PORT: ${{ secrets.CREATE_USER_PORT }}
+      DELETE_USER_HOST: ${{ secrets.DELETE_USER_HOST }}
+      DELETE_USER_PORT: ${{ secrets.DELETE_USER_PORT }}
+      UPDATE_USER_HOST: ${{ secrets.UPDATE_USER_HOST }}
+      UPDATE_USER_PORT: ${{ secrets.UPDATE_USER_PORT }}
+      REGISTER_GAME_HOST: ${{ secrets.REGISTER_GAME_HOST }}
+      REGISTER_GAME_PORT: ${{ secrets.REGISTER_GAME_PORT }}
+      GRAPHQL_USER_HOST: ${{ secrets.GRAPHQL_USER_HOST }}
+      GRAPHQL_USER_PORT: ${{ secrets.GRAPHQL_USER_PORT }}
+      SOAP_CREATE_ROLE_HOST: ${{ secrets.EC2_MICROSERVICIO2 }}
+      SOAP_CREATE_ROLE_PORT: ${{ secrets.ROLE_PORT_CREATE }}
+      SOAP_DELETE_ROLE_HOST: ${{ secrets.EC2_MICROSERVICIO2 }}
+      SOAP_DELETE_ROLE_PORT: ${{ secrets.ROLE_PORT_DELETE }}
+      SOAP_UPDATE_ROLE_HOST: ${{ secrets.EC2_MICROSERVICIO2 }}
+      SOAP_UPDATE_ROLE_PORT: ${{ secrets.ROLE_PORT_UPDATE }}
+      SOAP_GETBYID_ROLE_HOST: ${{ secrets.EC2_MICROSERVICIO2 }}
+      SOAP_GETBYID_ROLE_PORT: ${{ secrets.ROLE_PORT_GETBYID }}
+      SOAP_GETALL_ROLE_HOST: ${{ secrets.EC2_MICROSERVICIO2 }}
+      SOAP_GETALL_ROLE_PORT: ${{ secrets.ROLE_PORT_GETALL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Debug listar archivos del proyecto
+        run: |
+          echo "Directorio actual:"
+          pwd
+          echo "Archivos:"
+          ls -la
+          echo "Contenido carpeta nginx:"
+          ls -la nginx/
+
+      - name: Crear directorio remoto si no existe
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_APIGATEWAY }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY2 }}
+          script: |
+            mkdir -p /home/${{ secrets.EC2_USER }}/nginx-gateway-kit
+
+      - name: Copiar archivos a EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_APIGATEWAY }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY2 }}
+          source: |
+            docker-compose.yml
+            nginx/Dockerfile
+            nginx/entrypoint.sh
+            nginx/default.template.conf
+            nginx/templates/
+          target: /home/${{ secrets.EC2_USER }}/nginx-gateway-kit
+
+      - name: SSH a EC2 y desplegar API Gateway
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_APIGATEWAY }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY2 }}
+          envs: CREATE_USER_HOST,CREATE_USER_PORT,DELETE_USER_HOST,DELETE_USER_PORT,UPDATE_USER_HOST,UPDATE_USER_PORT,REGISTER_GAME_HOST,REGISTER_GAME_PORT,GRAPHQL_USER_HOST,GRAPHQL_USER_PORT,SOAP_CREATE_ROLE_HOST,SOAP_CREATE_ROLE_PORT,SOAP_DELETE_ROLE_HOST,SOAP_DELETE_ROLE_PORT,SOAP_UPDATE_ROLE_HOST,SOAP_UPDATE_ROLE_PORT,SOAP_GETBYID_ROLE_HOST,SOAP_GETBYID_ROLE_PORT,SOAP_GETALL_ROLE_HOST,SOAP_GETALL_ROLE_PORT
+          script: |
+            set -e
+
+            echo "🔍 Verificando instalación de Docker..."
+            if ! command -v docker &> /dev/null; then
+              echo "📦 Docker no encontrado, instalando..."
+              sudo apt-get update -y
+              sudo apt-get install -y docker.io
+              sudo systemctl start docker
+              sudo systemctl enable docker
+            else
+              echo "✅ Docker ya está instalado."
+            fi
+
+            echo "🔍 Verificando Docker Compose..."
+            if ! docker compose version &> /dev/null; then
+              echo "🔧 Docker Compose no encontrado, instalando plugin..."
+              sudo apt-get install -y docker-compose-plugin || sudo apt-get install -y docker-compose
+            else
+              echo "✅ Docker Compose ya está instalado."
+            fi
+
+            cd /home/${{ secrets.EC2_USER }}/nginx-gateway-kit
+
+            echo "🛑 Deteniendo contenedores existentes..."
+            sudo -E \
+              CREATE_USER_HOST=$CREATE_USER_HOST CREATE_USER_PORT=$CREATE_USER_PORT \
+              DELETE_USER_HOST=$DELETE_USER_HOST DELETE_USER_PORT=$DELETE_USER_PORT \
+              UPDATE_USER_HOST=$UPDATE_USER_HOST UPDATE_USER_PORT=$UPDATE_USER_PORT \
+              REGISTER_GAME_HOST=$REGISTER_GAME_HOST REGISTER_GAME_PORT=$REGISTER_GAME_PORT \
+              GRAPHQL_USER_HOST=$GRAPHQL_USER_HOST GRAPHQL_USER_PORT=$GRAPHQL_USER_PORT \
+              SOAP_CREATE_ROLE_HOST=$SOAP_CREATE_ROLE_HOST SOAP_CREATE_ROLE_PORT=$SOAP_CREATE_ROLE_PORT \
+              SOAP_DELETE_ROLE_HOST=$SOAP_DELETE_ROLE_HOST SOAP_DELETE_ROLE_PORT=$SOAP_DELETE_ROLE_PORT \
+              SOAP_UPDATE_ROLE_HOST=$SOAP_UPDATE_ROLE_HOST SOAP_UPDATE_ROLE_PORT=$SOAP_UPDATE_ROLE_PORT \
+              SOAP_GETBYID_ROLE_HOST=$SOAP_GETBYID_ROLE_HOST SOAP_GETBYID_ROLE_PORT=$SOAP_GETBYID_ROLE_PORT \
+              SOAP_GETALL_ROLE_HOST=$SOAP_GETALL_ROLE_HOST SOAP_GETALL_ROLE_PORT=$SOAP_GETALL_ROLE_PORT \
+              docker compose down || echo "No había contenedores activos."
+
+            echo "🚀 Levantando nuevos contenedores con variables de entorno..."
+            sudo -E \
+              CREATE_USER_HOST=$CREATE_USER_HOST CREATE_USER_PORT=$CREATE_USER_PORT \
+              DELETE_USER_HOST=$DELETE_USER_HOST DELETE_USER_PORT=$DELETE_USER_PORT \
+              UPDATE_USER_HOST=$UPDATE_USER_HOST UPDATE_USER_PORT=$UPDATE_USER_PORT \
+              REGISTER_GAME_HOST=$REGISTER_GAME_HOST REGISTER_GAME_PORT=$REGISTER_GAME_PORT \
+              GRAPHQL_USER_HOST=$GRAPHQL_USER_HOST GRAPHQL_USER_PORT=$GRAPHQL_USER_PORT \
+              SOAP_CREATE_ROLE_HOST=$SOAP_CREATE_ROLE_HOST SOAP_CREATE_ROLE_PORT=$SOAP_CREATE_ROLE_PORT \
+              SOAP_DELETE_ROLE_HOST=$SOAP_DELETE_ROLE_HOST SOAP_DELETE_ROLE_PORT=$SOAP_DELETE_ROLE_PORT \
+              SOAP_UPDATE_ROLE_HOST=$SOAP_UPDATE_ROLE_HOST SOAP_UPDATE_ROLE_PORT=$SOAP_UPDATE_ROLE_PORT \
+              SOAP_GETBYID_ROLE_HOST=$SOAP_GETBYID_ROLE_HOST SOAP_GETBYID_ROLE_PORT=$SOAP_GETBYID_ROLE_PORT \
+              SOAP_GETALL_ROLE_HOST=$SOAP_GETALL_ROLE_HOST SOAP_GETALL_ROLE_PORT=$SOAP_GETALL_ROLE_PORT \
+              docker compose up -d --build
+
+            echo "✅ Despliegue completado correctamente."
