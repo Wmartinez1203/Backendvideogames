@@ -3,8 +3,14 @@ name: Deploy API Gateway
 on:
   push:
     branches: [ dev ]
+    paths:
+        - 'Apigateway/**'
+        - '.github/workflows/devops-apigateway.yml'
   pull_request:
     branches: [ main ]
+    paths:
+        - 'Apigateway/**'
+        - '.github/workflows/devops-apigateway.yml'
   workflow_dispatch:
 
 jobs:
@@ -37,14 +43,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Debug listar archivos del proyecto
-        run: |
+      - name: Listar contenido de Apigateway
+        run: 
           echo "Directorio actual:"
           pwd
           echo "Archivos:"
           ls -la
           echo "Contenido carpeta nginx:"
-          ls -la nginx/
+          ls -la Apigateway/nginx/
 
       - name: Crear directorio remoto si no existe
         uses: appleboy/ssh-action@v1.0.0
@@ -53,7 +59,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY2 }}
           script: |
-            mkdir -p /home/${{ secrets.EC2_USER }}/nginx-gateway-kit
+            mkdir -p /home/${{ secrets.EC2_USER }}/nginx-gateway
 
       - name: Copiar archivos a EC2
         uses: appleboy/scp-action@v0.1.4
@@ -62,12 +68,11 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY2 }}
           source: |
-            docker-compose.yml
-            nginx/Dockerfile
-            nginx/entrypoint.sh
-            nginx/default.template.conf
-            nginx/templates/
-          target: /home/${{ secrets.EC2_USER }}/nginx-gateway-kit
+           Apigateway/docker-compose.yml
+           Apigateway/nginx/Dockerfile
+           Apigateway/nginx/entrypoint.sh
+           Apigateway/nginx/default.template.conf
+          target: /home/${{ secrets.EC2_USER }}/nginx-gateway
 
       - name: SSH a EC2 y desplegar API Gateway
         uses: appleboy/ssh-action@v1.0.0
@@ -98,7 +103,7 @@ jobs:
               echo "✅ Docker Compose ya está instalado."
             fi
 
-            cd /home/${{ secrets.EC2_USER }}/nginx-gateway-kit
+            cd /home/${{ secrets.EC2_USER }}/nginx-gateway
 
             echo "🛑 Deteniendo contenedores existentes..."
             sudo -E \
