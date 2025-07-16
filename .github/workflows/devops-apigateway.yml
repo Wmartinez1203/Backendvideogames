@@ -4,13 +4,13 @@ on:
   push:
     branches: [ dev ]
     paths:
-        - 'Apigateway/**'
-        - '.github/workflows/devops-apigateway.yml'
+      - 'Apigateway/**'
+      - '.github/workflows/devops-apigateway.yml'
   pull_request:
     branches: [ main ]
     paths:
-        - 'Apigateway/**'
-        - '.github/workflows/devops-apigateway.yml'
+      - 'Apigateway/**'
+      - '.github/workflows/devops-apigateway.yml'
   workflow_dispatch:
 
 jobs:
@@ -40,19 +40,26 @@ jobs:
       SOAP_GETALL_ROLE_PORT: ${{ secrets.ROLE_PORT_GETALL }}
 
     steps:
+      # 1. Clonar el repositorio
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Listar contenido de Apigateway
-        run: 
-          echo "Directorio actual:"
+      # 2. Verificar contenido antes del SCP
+      - name: Verificar contenido de Apigateway y nginx
+        run: |
+          echo "📁 Directorio actual:"
           pwd
-          echo "Archivos:"
+          echo "📄 Archivos raíz:"
           ls -la
-          echo "Contenido carpeta nginx:"
-          ls -la Apigateway/nginx/
+          echo "📁 Contenido de Apigateway:"
+          ls -la Apigateway/
+          echo "📁 Contenido de Apigateway/nginx:"
+          ls -la Apigateway/nginx/ || echo "❌ nginx no encontrado"
+          echo "📁 Contenido de templates:"
+          ls -la Apigateway/nginx/templates/ || echo "❌ templates vacío o no existe"
 
-      - name: Crear directorio remoto si no existe
+      # 3. Crear directorio remoto si no existe
+      - name: Crear directorio remoto en EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_APIGATEWAY }}
@@ -61,6 +68,7 @@ jobs:
           script: |
             mkdir -p /home/${{ secrets.EC2_USER }}/nginx-gateway
 
+      # 4. Copiar archivos necesarios a EC2
       - name: Copiar archivos a EC2
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -68,12 +76,14 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY2 }}
           source: |
-           Apigateway/docker-compose.yml
-           Apigateway/nginx/Dockerfile
-           Apigateway/nginx/entrypoint.sh
-           Apigateway/nginx/default.template.conf
+            Apigateway/docker-compose.yml
+            Apigateway/nginx/Dockerfile
+            Apigateway/nginx/entrypoint.sh
+            Apigateway/nginx/default.template.conf
+            Apigateway/nginx/templates/
           target: /home/${{ secrets.EC2_USER }}/nginx-gateway
 
+      # 5. Conectarse por SSH y desplegar con Docker Compose
       - name: SSH a EC2 y desplegar API Gateway
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -84,9 +94,9 @@ jobs:
           script: |
             set -e
 
-            echo "🔍 Verificando instalación de Docker..."
+            echo "🔍 Verificando Docker..."
             if ! command -v docker &> /dev/null; then
-              echo "📦 Docker no encontrado, instalando..."
+              echo "📦 Instalando Docker..."
               sudo apt-get update -y
               sudo apt-get install -y docker.io
               sudo systemctl start docker
@@ -97,29 +107,19 @@ jobs:
 
             echo "🔍 Verificando Docker Compose..."
             if ! docker compose version &> /dev/null; then
-              echo "🔧 Docker Compose no encontrado, instalando plugin..."
+              echo "🔧 Instalando Docker Compose plugin..."
               sudo apt-get install -y docker-compose-plugin || sudo apt-get install -y docker-compose
             else
               echo "✅ Docker Compose ya está instalado."
             fi
 
+            echo "📂 Navegando al directorio de despliegue..."
             cd /home/${{ secrets.EC2_USER }}/nginx-gateway
 
-            echo "🛑 Deteniendo contenedores existentes..."
-            sudo -E \
-              CREATE_USER_HOST=$CREATE_USER_HOST CREATE_USER_PORT=$CREATE_USER_PORT \
-              DELETE_USER_HOST=$DELETE_USER_HOST DELETE_USER_PORT=$DELETE_USER_PORT \
-              UPDATE_USER_HOST=$UPDATE_USER_HOST UPDATE_USER_PORT=$UPDATE_USER_PORT \
-              REGISTER_GAME_HOST=$REGISTER_GAME_HOST REGISTER_GAME_PORT=$REGISTER_GAME_PORT \
-              GRAPHQL_USER_HOST=$GRAPHQL_USER_HOST GRAPHQL_USER_PORT=$GRAPHQL_USER_PORT \
-              SOAP_CREATE_ROLE_HOST=$SOAP_CREATE_ROLE_HOST SOAP_CREATE_ROLE_PORT=$SOAP_CREATE_ROLE_PORT \
-              SOAP_DELETE_ROLE_HOST=$SOAP_DELETE_ROLE_HOST SOAP_DELETE_ROLE_PORT=$SOAP_DELETE_ROLE_PORT \
-              SOAP_UPDATE_ROLE_HOST=$SOAP_UPDATE_ROLE_HOST SOAP_UPDATE_ROLE_PORT=$SOAP_UPDATE_ROLE_PORT \
-              SOAP_GETBYID_ROLE_HOST=$SOAP_GETBYID_ROLE_HOST SOAP_GETBYID_ROLE_PORT=$SOAP_GETBYID_ROLE_PORT \
-              SOAP_GETALL_ROLE_HOST=$SOAP_GETALL_ROLE_HOST SOAP_GETALL_ROLE_PORT=$SOAP_GETALL_ROLE_PORT \
-              docker compose down || echo "No había contenedores activos."
+            echo "🛑 Deteniendo contenedores actuales si existen..."
+            sudo -E docker compose down || echo "No había contenedores activos."
 
-            echo "🚀 Levantando nuevos contenedores con variables de entorno..."
+            echo "🚀 Levantando nuevos contenedores..."
             sudo -E \
               CREATE_USER_HOST=$CREATE_USER_HOST CREATE_USER_PORT=$CREATE_USER_PORT \
               DELETE_USER_HOST=$DELETE_USER_HOST DELETE_USER_PORT=$DELETE_USER_PORT \
