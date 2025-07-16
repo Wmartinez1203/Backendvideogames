@@ -1,15 +1,43 @@
 services:
   api-gateway:
-    build: ./nginx  
+    build: ./nginx
+    container_name: api-gateway
     ports:
-      - "80:80"    
+      - "80:80"
+    #env_file:
+      #- .env
     environment:
+      # --- REST ---
+      CREATE_USER_HOST: ${CREATE_USER_HOST}
+      CREATE_USER_PORT: ${CREATE_USER_PORT}
 
-      SERVICE1_HOST: ${SERVICE1_HOST}  # Host del primer servicio backend
-      SERVICE1_PORT: ${SERVICE1_PORT}  # Puerto del primer servicio backend
-      SERVICE2_HOST: ${SERVICE2_HOST}  # Host del segundo servicio backend
-      SERVICE2_PORT: ${SERVICE2_PORT}  # Puerto del segundo servicio backend
-      SERVICE3_HOST: ${SERVICE3_HOST}  # Host del tercer servicio backend
-      SERVICE3_PORT: ${SERVICE3_PORT}  # Puerto del tercer servicio backend
-      SERVICE4_HOST: ${SERVICE4_HOST}  # Host del cuarto servicio backend
-      SERVICE4_PORT: ${SERVICE4_PORT}  # Puerto del cuarto servicio backend
+      DELETE_USER_HOST: ${DELETE_USER_HOST}
+      DELETE_USER_PORT: ${DELETE_USER_PORT}
+
+      UPDATE_USER_HOST: ${UPDATE_USER_HOST}
+      UPDATE_USER_PORT: ${UPDATE_USER_PORT}
+
+      REGISTER_GAME_HOST: ${REGISTER_GAME_HOST}
+      REGISTER_GAME_PORT: ${REGISTER_GAME_PORT}
+
+      # --- GraphQL ---
+      GRAPHQL_USER_HOST: ${GRAPHQL_USER_HOST}
+      GRAPHQL_USER_PORT: ${GRAPHQL_USER_PORT}
+
+      # --- SOAP: Rol Management ---
+      SOAP_CREATE_ROLE_HOST: ${SOAP_CREATE_ROLE_HOST}
+      SOAP_CREATE_ROLE_PORT: ${SOAP_CREATE_ROLE_PORT}
+
+      SOAP_DELETE_ROLE_HOST: ${SOAP_DELETE_ROLE_HOST}
+      SOAP_DELETE_ROLE_PORT: ${SOAP_DELETE_ROLE_PORT}
+
+      SOAP_UPDATE_ROLE_HOST: ${SOAP_UPDATE_ROLE_HOST}
+      SOAP_UPDATE_ROLE_PORT: ${SOAP_UPDATE_ROLE_PORT}
+
+      SOAP_GETBYID_ROLE_HOST: ${SOAP_GETBYID_ROLE_HOST}
+      SOAP_GETBYID_ROLE_PORT: ${SOAP_GETBYID_ROLE_PORT}
+
+      SOAP_GETALL_ROLE_HOST: ${SOAP_GETALL_ROLE_HOST}
+      SOAP_GETALL_ROLE_PORT: ${SOAP_GETALL_ROLE_PORT}
+
+    restart: unless-stopped
