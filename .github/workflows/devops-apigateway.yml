@@ -55,8 +55,6 @@ jobs:
           ls -la Apigateway/
           echo "📁 Contenido de Apigateway/nginx:"
           ls -la Apigateway/nginx/ || echo "❌ nginx no encontrado"
-          echo "📁 Contenido de templates:"
-          ls -la Apigateway/nginx/templates/ || echo "❌ templates vacío o no existe"
 
       # 3. Crear directorio remoto si no existe
       - name: Crear directorio remoto en EC2
@@ -66,7 +64,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY2 }}
           script: |
-            mkdir -p /home/${{ secrets.EC2_USER }}/nginx-gateway
+            mkdir -p /home/${{ secrets.EC2_USER }}/nginx-gateway/Apigateway
 
       # 4. Copiar archivos necesarios a EC2
       - name: Copiar archivos a EC2
@@ -76,7 +74,7 @@ jobs:
             username: ${{ secrets.EC2_USER }}
             key: ${{ secrets.EC2_KEY2 }}
             source: "Apigateway/docker-compose.yml,Apigateway/nginx/Dockerfile,Apigateway/nginx/entrypoint.sh,Apigateway/nginx/default.template.conf"                
-            target: "/home/${{ secrets.EC2_USER }}/nginx-gateway"
+            target: "/home/${{ secrets.EC2_USER }}/nginx-gateway/Apigateway"
 
 
       # 5. Conectarse por SSH y desplegar con Docker Compose
@@ -110,7 +108,7 @@ jobs:
             fi
 
             echo "📂 Navegando al directorio de despliegue..."
-            cd /home/${{ secrets.EC2_USER }}/nginx-gateway
+            cd /home/${{ secrets.EC2_USER }}/nginx-gateway/Apigateway
 
             echo "🛑 Deteniendo contenedores actuales si existen..."
             docker-compose down || echo "No había contenedores activos."
