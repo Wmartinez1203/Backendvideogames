@@ -72,16 +72,12 @@ jobs:
       - name: Copiar archivos a EC2
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.EC2_APIGATEWAY }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY2 }}
-          source: |
-            Apigateway/docker-compose.yml
-            Apigateway/nginx/Dockerfile
-            Apigateway/nginx/entrypoint.sh
-            Apigateway/nginx/default.template.conf
-            Apigateway/nginx/templates/
-          target: /home/${{ secrets.EC2_USER }}/nginx-gateway
+            host: ${{ secrets.EC2_APIGATEWAY }}
+            username: ${{ secrets.EC2_USER }}
+            key: ${{ secrets.EC2_KEY2 }}
+            source: "Apigateway/docker-compose.yml,Apigateway/nginx/Dockerfile,Apigateway/nginx/entrypoint.sh,Apigateway/nginx/default.template.conf"                
+            target: "/home/${{ secrets.EC2_USER }}/nginx-gateway"
+
 
       # 5. Conectarse por SSH y desplegar con Docker Compose
       - name: SSH a EC2 y desplegar API Gateway
