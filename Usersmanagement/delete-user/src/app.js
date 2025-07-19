@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // DELETE /api/usuarios/:id
-app.delete("/api/usuarios/:id", async (req, res) => {
+app.delete("/api/usuarios/delete/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const rows = await User.destroy({ where: { id } });
